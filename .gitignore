@@ -1,0 +1,6 @@
+.venv/
+session_data/
+config.json
+.env
+__pycache__/
+*.py[cod]

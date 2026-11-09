@@ -1,0 +1,14 @@
+{
+  "product_url": "https://shop.amul.com/en/product/REPLACE-WITH-PRODUCT-URL",
+  "product_name": "Replace with the exact product name",
+  "in_stock_selector": "REPLACE_WITH_A_SELECTOR_VISIBLE_ONLY_WHEN_IN_STOCK",
+  "out_of_stock_selector": "REPLACE_WITH_OUT_OF_STOCK_SELECTOR",
+  "price_selector": "REPLACE_WITH_SINGLE_PRICE_SELECTOR",
+  "poll_interval_seconds": 300,
+  "profile_dir": "session_data",
+  "cart_url": null,
+  "add_to_cart_selector": "REPLACE_WITH_ADD_TO_CART_SELECTOR",
+  "cart_empty_selector": "REPLACE_WITH_EMPTY_CART_MESSAGE_SELECTOR",
+  "cart_item_selector": "REPLACE_WITH_ONE_SELECTOR_PER_CART_LINE_ITEM",
+  "cart_total_selector": "REPLACE_WITH_GRAND_TOTAL_INCLUDING_FEES_SELECTOR"
+}

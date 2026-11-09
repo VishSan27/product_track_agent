@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="app-token" content="__APP_TOKEN__">
+  <title>Stockwatch — Product tracker</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Stockwatch home">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span>stockwatch<span class="brand-period">.</span></span>
+    </a>
+    <span class="local-badge"><span aria-hidden="true"></span> Private on this device</span>
+  </header>
+
+  <main class="shell">
+    <section class="intro">
+      <p class="eyebrow">YOUR PERSONAL PRODUCT WATCHLIST</p>
+      <h1>Let the stock come to you.</h1>
+      <p class="intro-copy">Add a product link and Stockwatch will check its availability periodically. You stay in control of every purchase.</p>
+    </section>
+
+    <section class="add-panel" aria-labelledby="add-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">NEW TRACKER</p>
+          <h2 id="add-title">Add a product</h2>
+        </div>
+        <span class="limit-note">Purchases are never made automatically</span>
+      </div>
+      <form id="add-form">
+        <label for="product-url">Product page link</label>
+        <div class="url-row">
+          <input id="product-url" name="url" type="url" placeholder="https://store.com/products/item" autocomplete="url" required>
+          <button class="primary-button" type="submit"><span aria-hidden="true">＋</span> Track product</button>
+        </div>
+        <details class="advanced">
+          <summary>Advanced: help detection for this store</summary>
+          <p class="help-copy">Most product pages are detected automatically. If this page has clear CSS selectors, add them here. Leave fields blank to use automatic detection.</p>
+          <div class="selector-grid">
+            <div>
+              <label for="in-stock-selector">In-stock CSS selector</label>
+              <input id="in-stock-selector" name="in_stock_selector" type="text" placeholder="e.g. button.add-to-cart">
+            </div>
+            <div>
+              <label for="out-stock-selector">Out-of-stock CSS selector</label>
+              <input id="out-stock-selector" name="out_of_stock_selector" type="text" placeholder="e.g. .sold-out-message">
+            </div>
+            <div>
+              <label for="price-selector">Price CSS selector</label>
+              <input id="price-selector" name="price_selector" type="text" placeholder="e.g. .product-price">
+            </div>
+          </div>
+        </details>
+        <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="watchlist" aria-labelledby="watchlist-title">
+      <div class="section-heading watchlist-heading">
+        <div>
+          <p class="eyebrow">LIVE WATCHLIST</p>
+          <h2 id="watchlist-title">Your products <span id="product-count" class="count-pill">0</span></h2>
+        </div>
+        <button id="refresh-button" class="quiet-button" type="button">Refresh list</button>
+      </div>
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon" aria-hidden="true">↗</div>
+        <h3>Your watchlist is ready</h3>
+        <p>Paste a product link above to start tracking it.</p>
+      </div>
+      <div id="product-list" class="product-list"></div>
+    </section>
+
+    <aside class="safety-note">
+      <span class="safety-icon" aria-hidden="true">✓</span>
+      <div>
+        <strong>You approve every purchase.</strong>
+        <p>Stockwatch only checks product pages. It never adds items to your cart, starts checkout, or makes payments. Your ₹4,800 limit is a reminder for your own review, not a payment control.</p>
+      </div>
+    </aside>
+  </main>
+  <footer class="footer">Stockwatch runs locally on your computer. Keep this app and its browser profile private.</footer>
+</body>
+</html>

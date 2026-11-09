@@ -1,5 +1,7 @@
 .venv/
 session_data/
+monitor_profile/
+data/
 config.json
 .env
 __pycache__/

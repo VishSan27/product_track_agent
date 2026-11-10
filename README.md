@@ -16,7 +16,9 @@ From the project directory, in PowerShell:
 
 Open [http://127.0.0.1:8765](http://127.0.0.1:8765). Paste an HTTPS product page link and choose **Track product**. The first check starts promptly; later checks use a five-minute interval. Use **Check now** to request an immediate check, or **Remove** to stop tracking it. Products are stored in `data/products.sqlite3`.
 
-The monitor uses its own browser profile in `monitor_profile/`. Most public product pages do not need a login. If a store requires you to set a delivery pincode or sign in, stock status may remain unknown. The optional selector fields in **Advanced** can improve detection; enter a CSS selector such as `.price-new`, or a Playwright text selector such as `text=Sold Out`. Use **Edit detection** on a saved product to update its selectors. Detection is best-effort across stores, so verify a result on the retailer's page. If the store says the product link is unavailable, reopen the product page in your regular browser and copy its current URL; CSS selectors cannot repair a dead or redirected link.
+The dashboard opens a visible Chromium monitor using the private `session_data/` profile. If the store asks you to sign in or select a delivery pincode, complete that prompt in the monitor window yourself. You can also prepare the session first: close Stockwatch, run `.\.venv\Scripts\python.exe auth_setup.py`, sign in and set your pincode in that browser, then press Enter to close it before starting Stockwatch. Never run `auth_setup.py` and Stockwatch at the same time because they share the profile. Only track links from stores and accounts you trust.
+
+The optional selector fields in **Advanced** can improve detection; enter a CSS selector such as `.price-new`, or a Playwright text selector such as `text=Sold Out`. Use **Edit detection** on a saved product to update its selectors. Detection is best-effort across stores, so verify a result on the retailer's page. If the store says the product link is unavailable even after login and setting a pincode, reopen the product page in your regular browser and copy its current URL; selectors cannot repair a dead or redirected link.
 
 The app only binds to `127.0.0.1` and uses a per-run token for its API. Keep it local; do not expose the port to your network. Stop it with Ctrl+C. Tracking runs only while the app and your computer are running.
 
@@ -51,13 +53,13 @@ Stockwatch sends an alert when it first detects a known stock state and when tha
 - Product status prefers the page's matching Product structured data, then configured CSS selectors, then visible stock messages or a purchase button. If it cannot confidently determine availability, the last known state is kept and the dashboard shows a warning.
 - Optional selectors are per-product and can be left blank. A price is only shown when one INR amount can be parsed; verify it manually.
 - Product URLs must use HTTPS. Local/private IP addresses and checkout/payment paths are rejected. Navigations away from the product origin and common checkout/payment paths are blocked.
-- The monitor profile is separate from the signed-in profile in `session_data/`. Do not point it at a trusted-account profile for arbitrary links; only track pages you trust.
+- The monitor and `auth_setup.py` share the signed-in profile in `session_data/`. Close the setup browser and any other Stockwatch instance before starting another; profile directories must not be used by two processes at once.
 - The app checks at most 100 products, with a minimum 60-second interval and a default five-minute interval. Follow the retailer's terms and reasonable request rates.
-- Keep `monitor_profile/`, `session_data/`, `data/`, and Telegram credentials private. These local directories are ignored by Git.
+- Keep `session_data/`, `data/`, and Telegram credentials private. These local directories are ignored by Git.
 
 ## Existing login and cart-preparation tools
 
-`auth_setup.py` prepares the separate `session_data/` profile. The single-product CLI in `stock_agent.py` reads `config.json`, and its optional `--prepare-checkout` flag can stage a product in a confirmed-empty cart after checking the configured amount. Store-specific selectors and cart layouts must be verified manually. It does not pay or place an order. This cart-preparation flow is not connected to the web dashboard.
+`auth_setup.py` prepares the `session_data/` profile shared by the dashboard monitor. The single-product CLI in `stock_agent.py` reads `config.json`, and its optional `--prepare-checkout` flag can stage a product in a confirmed-empty cart after checking the configured amount. Store-specific selectors and cart layouts must be verified manually. It does not pay or place an order. This cart-preparation flow is not connected to the web dashboard.
 
 Run the unit tests with:
 

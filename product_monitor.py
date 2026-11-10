@@ -496,15 +496,16 @@ class MonitorService:
             with sync_playwright() as playwright:
                 context = playwright.chromium.launch_persistent_context(
                     user_data_dir=str(self.profile_dir),
-                    headless=True,
+                    headless=False,
                 )
                 try:
+                    page = context.pages[0] if context.pages else context.new_page()
                     while not self._stop.is_set():
                         due = self.store.due_products()
                         for product in due:
                             if self._stop.is_set():
                                 break
-                            self._check_product(context, product)
+                            self._check_product(page, product)
                         self._wake.wait(timeout=15)
                         self._wake.clear()
                 finally:
@@ -512,10 +513,8 @@ class MonitorService:
         except Exception:
             LOGGER.exception("The product monitor stopped unexpectedly.")
 
-    def _check_product(self, context: Any, product: dict[str, Any]) -> None:
-        page: Page | None = None
+    def _check_product(self, page: Page, product: dict[str, Any]) -> None:
         try:
-            page = context.new_page()
             page.route("**/*", lambda route: _guard_route(route, page, product["url"]))
             response = page.goto(
                 product["url"],
@@ -610,6 +609,3 @@ class MonitorService:
         except Exception as exc:
             LOGGER.exception("Unexpected product check failure for %s", product["url"])
             self.store.save_error(product["id"], str(exc))
-        finally:
-            if page is not None:
-                page.close()

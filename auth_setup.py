@@ -1,11 +1,15 @@
 import asyncio
+from pathlib import Path
+
 from playwright.async_api import async_playwright
+
+PROFILE_DIR = Path(__file__).resolve().parent / "session_data"
+
 
 async def main():
     async with async_playwright() as p:
-        # Launches Chromium with your persistent session folder
         context = await p.chromium.launch_persistent_context(
-            user_data_dir="./session_data",
+            user_data_dir=str(PROFILE_DIR),
             headless=False
         )
         
@@ -23,6 +27,6 @@ async def main():
         await asyncio.to_thread(input, "Press ENTER when logged in: ")
         
         await context.close()
-        print("Session saved successfully to ./session_data")
+        print(f"Session saved successfully to {PROFILE_DIR}")
 
 asyncio.run(main())

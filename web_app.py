@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import secrets
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -223,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
     store = ProductStore(args.database)
-    profile_dir = Path(os.environ.get("STOCK_MONITOR_PROFILE", str(ROOT / "monitor_profile")))
+    profile_dir = ROOT / "session_data"
     monitor = MonitorService(store, profile_dir)
     token = secrets.token_urlsafe(32)
     server = ThreadingHTTPServer(

@@ -40,19 +40,19 @@
         </div>
         <details class="advanced">
           <summary>Advanced: help detection for this store</summary>
-          <p class="help-copy">Most product pages are detected automatically. If this page has clear CSS selectors, add them here. Leave fields blank to use automatic detection.</p>
+          <p class="help-copy">Most product pages are detected automatically. Use a CSS selector (for example <code>.price-new</code>) or Playwright text selector (for example <code>text=Sold Out</code>). Leave fields blank to use automatic detection. Selectors only work if the product page itself loads.</p>
           <div class="selector-grid">
             <div>
               <label for="in-stock-selector">In-stock CSS selector</label>
-              <input id="in-stock-selector" name="in_stock_selector" type="text" placeholder="e.g. button.add-to-cart">
+              <input id="in-stock-selector" name="in_stock_selector" type="text" placeholder="e.g. button.add-to-cart or text=Add to Cart">
             </div>
             <div>
               <label for="out-stock-selector">Out-of-stock CSS selector</label>
-              <input id="out-stock-selector" name="out_of_stock_selector" type="text" placeholder="e.g. .sold-out-message">
+              <input id="out-stock-selector" name="out_of_stock_selector" type="text" placeholder="e.g. .sold-out-message or text=Sold Out">
             </div>
             <div>
               <label for="price-selector">Price CSS selector</label>
-              <input id="price-selector" name="price_selector" type="text" placeholder="e.g. .product-price">
+              <input id="price-selector" name="price_selector" type="text" placeholder="e.g. .price-new">
             </div>
           </div>
         </details>

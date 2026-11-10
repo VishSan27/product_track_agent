@@ -49,6 +49,17 @@ class ProductValidationTests(unittest.TestCase):
         self.assertEqual(result.price, "4500")
         self.assertEqual(inspect_snapshot({"stock": None}).status, "unknown")
 
+    def test_snapshot_reports_store_page_unavailable(self) -> None:
+        result = inspect_snapshot(
+            {
+                "title": "Amul",
+                "stock": None,
+                "pageIssue": "The store says this product page is unavailable.",
+            }
+        )
+        self.assertEqual(result.status, "unknown")
+        self.assertIn("product page is unavailable", result.diagnostic)
+
 
 class ProductStoreTests(unittest.TestCase):
     def setUp(self) -> None:

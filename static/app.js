@@ -107,7 +107,21 @@ function createProductCard(product) {
       formMessage.textContent = error.message;
     }
   });
-  actions.append(checkButton, removeButton);
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.textContent = "Edit detection";
+  editButton.addEventListener("click", () => {
+    form.elements.url.value = product.url;
+    form.elements.in_stock_selector.value = product.in_stock_selector || "";
+    form.elements.out_of_stock_selector.value = product.out_of_stock_selector || "";
+    form.elements.price_selector.value = product.price_selector || "";
+    document.querySelector(".advanced").open = true;
+    document.querySelector("#add-title").textContent = "Update product detection";
+    document.querySelector("#product-url").scrollIntoView({ behavior: "smooth", block: "center" });
+    document.querySelector("#product-url").focus();
+    formMessage.textContent = "Update the fields and choose Track product to save.";
+  });
+  actions.append(checkButton, editButton, removeButton);
 
   card.append(main, meta, actions);
   return card;
@@ -142,7 +156,8 @@ form.addEventListener("submit", async (event) => {
     form.reset();
     document.querySelector(".advanced").open = false;
     await loadProducts();
-    formMessage.textContent = "Added. The first check will run shortly.";
+    document.querySelector("#add-title").textContent = "Add a product";
+    formMessage.textContent = "Saved. The next check will run shortly.";
   } catch (error) {
     formMessage.textContent = error.message;
   } finally {

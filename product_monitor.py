@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import ipaddress
-import json
 import logging
-import os
 import re
 import sqlite3
 import threading
@@ -13,7 +11,7 @@ import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Generator
 from urllib.parse import urlsplit
 
 from playwright.sync_api import Error as PlaywrightError
@@ -80,6 +78,10 @@ PAGE_INSPECTION_SCRIPT = r"""
     }
   }
   const pageTitle = document.querySelector("h1")?.innerText?.trim() || document.title || "";
+  const bodyText = (document.body?.innerText || "").toLowerCase();
+  const pageIssue = /\b(?:web address you entered is not a functioning page|page not found|product not found)\b/.test(bodyText)
+    ? "The store says this product page is unavailable. Reopen the link in your browser and copy the current product URL."
+    : null;
   const normalize = (value) => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const canonical = document.querySelector('link[rel="canonical"]')?.href || location.href;
   const normalizeUrl = (value) => {
@@ -156,7 +158,7 @@ PAGE_INSPECTION_SCRIPT = r"""
       }
     }
   }
-  return {title, priceText, stock, source};
+  return {title, priceText, stock, source, pageIssue};
 }
 """
 
@@ -204,6 +206,8 @@ def validate_product_url(value: str) -> str:
 def inspect_snapshot(
     snapshot: dict[str, Any], diagnostic: str | None = None
 ) -> CheckResult:
+    snapshot_diagnostic = str(snapshot.get("pageIssue") or "").strip() or None
+    diagnostic = diagnostic or snapshot_diagnostic
     raw_status = snapshot.get("stock")
     status = raw_status if raw_status in {"in_stock", "out_of_stock"} else "unknown"
     title = str(snapshot.get("title") or "").strip()[:300] or "Product"
@@ -262,7 +266,7 @@ class ProductStore:
         return connection
 
     @contextmanager
-    def _session(self) -> Iterator[sqlite3.Connection]:
+    def _session(self) -> Generator[sqlite3.Connection, None, None]:
         connection = self._connect()
         try:
             yield connection
@@ -385,7 +389,8 @@ class ProductStore:
                         now + row["interval_seconds"],
                         result.price,
                         result.source,
-                        "Could not determine stock; verify this product page or add selectors.",
+                        result.diagnostic
+                        or "Could not determine stock; verify this product page or add selectors.",
                         now,
                         product_id,
                     ),
@@ -512,7 +517,11 @@ class MonitorService:
         try:
             page = context.new_page()
             page.route("**/*", lambda route: _guard_route(route, page, product["url"]))
-            page.goto(product["url"], wait_until="domcontentloaded", timeout=45_000)
+            response = page.goto(
+                product["url"],
+                wait_until="domcontentloaded",
+                timeout=45_000,
+            )
             page.wait_for_timeout(1_500)
             snapshot = page.evaluate(
                 PAGE_INSPECTION_SCRIPT,
@@ -522,19 +531,67 @@ class MonitorService:
                     "priceSelector": product["price_selector"],
                 },
             )
+            if response and response.status >= 400:
+                snapshot["pageIssue"] = (
+                    f"The product page returned HTTP {response.status}. "
+                    "Reopen the link in your browser and copy the current product URL."
+                )
             diagnostics = []
-            for field in ("in_stock_selector", "out_of_stock_selector", "price_selector"):
-                selector = product[field]
-                if selector:
-                    count = page.locator(selector).count()
+            if not snapshot.get("pageIssue"):
+                for field in (
+                    "in_stock_selector",
+                    "out_of_stock_selector",
+                    "price_selector",
+                ):
+                    selector = product[field]
+                    if not selector:
+                        continue
+                    try:
+                        locator = page.locator(selector)
+                        count = locator.count()
+                    except PlaywrightError as exc:
+                        diagnostics.append(f"Invalid {field}: {exc.message.splitlines()[0]}")
+                        continue
                     if count == 0:
                         diagnostics.append(f"Configured {field} matched no elements.")
                     elif field == "price_selector" and count > 1:
                         diagnostics.append("Price selector matched multiple elements.")
+                    elif field == "in_stock_selector":
+                        try:
+                            if locator.first.is_visible() and locator.first.is_enabled():
+                                snapshot["stock"] = "in_stock"
+                                snapshot["source"] = "configured in-stock selector"
+                        except PlaywrightError as exc:
+                            diagnostics.append(
+                                f"Could not check configured in-stock selector: "
+                                f"{exc.message.splitlines()[0]}"
+                            )
+                    elif field == "out_of_stock_selector":
+                        try:
+                            if locator.first.is_visible():
+                                snapshot["stock"] = "out_of_stock"
+                                snapshot["source"] = "configured out-of-stock selector"
+                        except PlaywrightError as exc:
+                            diagnostics.append(
+                                f"Could not check configured out-of-stock selector: "
+                                f"{exc.message.splitlines()[0]}"
+                            )
+                    elif field == "price_selector":
+                        try:
+                            if locator.first.is_visible():
+                                snapshot["priceText"] = locator.first.inner_text().strip()
+                        except PlaywrightError as exc:
+                            diagnostics.append(
+                                f"Could not read configured price selector: {exc.message.splitlines()[0]}"
+                            )
             result = inspect_snapshot(snapshot, " ".join(diagnostics) or None)
             changed = self.store.save_result(product["id"], result)
             if result.status == "unknown":
-                LOGGER.warning("Could not determine stock for %s", product["url"])
+                LOGGER.warning(
+                    "Could not determine stock for %s: %s",
+                    product["url"],
+                    result.diagnostic or "no availability signal found",
+                )
             elif changed:
                 status_text = "IN STOCK" if result.status == "in_stock" else "OUT OF STOCK"
                 price_text = f"\nDetected price: ₹{result.price}" if result.price else ""

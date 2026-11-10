@@ -136,6 +136,7 @@ input::placeholder { color: #a0aaa4; }
 .advanced { margin-top: 18px; color: #4a6053; font-size: 12px; }
 .advanced summary { width: fit-content; cursor: pointer; font-weight: 600; }
 .help-copy { margin: 11px 0 2px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.help-copy code { padding: 2px 4px; border-radius: 4px; background: #f0f4f1; color: #355745; }
 .selector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .selector-grid label { margin-top: 13px; font-size: 11px; }
 .selector-grid input { height: 40px; font-size: 11px; }

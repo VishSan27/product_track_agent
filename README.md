@@ -16,7 +16,7 @@ From the project directory, in PowerShell:
 
 Open [http://127.0.0.1:8765](http://127.0.0.1:8765). Paste an HTTPS product page link and choose **Track product**. The first check starts promptly; later checks use a five-minute interval. Use **Check now** to request an immediate check, or **Remove** to stop tracking it. Products are stored in `data/products.sqlite3`.
 
-The monitor uses its own browser profile in `monitor_profile/`. Most public product pages do not need a login. If a store requires you to set a delivery pincode or sign in, stock status may remain unknown. The optional selector fields in **Advanced** can improve detection; use CSS selectors that identify the product's own stock indicator and price. Detection is best-effort across stores, so verify a result on the retailer's page.
+The monitor uses its own browser profile in `monitor_profile/`. Most public product pages do not need a login. If a store requires you to set a delivery pincode or sign in, stock status may remain unknown. The optional selector fields in **Advanced** can improve detection; enter a CSS selector such as `.price-new`, or a Playwright text selector such as `text=Sold Out`. Use **Edit detection** on a saved product to update its selectors. Detection is best-effort across stores, so verify a result on the retailer's page. If the store says the product link is unavailable, reopen the product page in your regular browser and copy its current URL; CSS selectors cannot repair a dead or redirected link.
 
 The app only binds to `127.0.0.1` and uses a per-run token for its API. Keep it local; do not expose the port to your network. Stop it with Ctrl+C. Tracking runs only while the app and your computer are running.
 
